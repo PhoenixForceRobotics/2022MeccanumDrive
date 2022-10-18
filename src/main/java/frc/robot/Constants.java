@@ -42,6 +42,7 @@ public final class Constants {
         public static final Translation2d WHEEL_FR_LOCATION = new Translation2d(0.381, -0.381);
         public static final Translation2d WHEEL_BL_LOCATION = new Translation2d(-0.381, 0.381);
         public static final Translation2d WHEEL_BR_LOCATION = new Translation2d(-0.381, -0.381);
+        public static final Translation2d FRONT_CENTER_LOCATION = new Translation2d(0, 0.381); // Helpful for evassive manuvers
 
         public static final HolonomicDriveController HOLONOMIC_DRIVE_CONTROLLER = new HolonomicDriveController(
             new PIDController(1, 0, 0), // PID to control error in the x direction

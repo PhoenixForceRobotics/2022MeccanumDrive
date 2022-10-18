@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.subsystems.Drivebase;
+import frc.robot.subsystems.Drivebase.CenterOfRotation;
 import frc.robot.utils.PFRController;
 
 public class MeccanumDrive extends CommandBase {
@@ -28,7 +29,7 @@ public class MeccanumDrive extends CommandBase {
     @Override
     public void execute() {
         
-        if(driverController.getAButtonPressed())
+        if(driverController.getAButtonPressed()) 
         {
             switch (frameOfReference) {
                 case ROBOT:
@@ -39,21 +40,35 @@ public class MeccanumDrive extends CommandBase {
                     break;
             }
         }
+        
+        
+        
+        double xVelocity = Math.pow(driverController.getLeftX(), ControllerConstants.STICK_EXPONENTIAL_CURVE)  * DrivebaseConstants.MAX_LINEAR_VELOCITY;
+        double yVelocity = Math.pow(driverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_LINEAR_VELOCITY; 
+        double angularVelocity = Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_ANGULAR_VELOCITY;
+
+        // More redundancies to prevent damage
+        if(!drivebase.isMeccanum())
+        {
+            frameOfReference = FrameOfReference.ROBOT;
+            yVelocity = 0;
+            drivebase.setCenterOfRotation(CenterOfRotation.CENTER);
+        }
 
         if(frameOfReference == FrameOfReference.ROBOT)
         {    
             drivebase.setChassisSpeeds(
-                Math.pow(driverController.getLeftX(), ControllerConstants.STICK_EXPONENTIAL_CURVE)  * DrivebaseConstants.MAX_LINEAR_VELOCITY, 
-                Math.pow(driverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_LINEAR_VELOCITY, 
-                Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_ANGULAR_VELOCITY
+                xVelocity,
+                yVelocity,
+                angularVelocity
             );
         }
         else
         {
             drivebase.setFieldRelativeChassisSpeeds(
-                Math.pow(driverController.getLeftX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_LINEAR_VELOCITY, 
-                Math.pow(driverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_LINEAR_VELOCITY, 
-                Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_ANGULAR_VELOCITY
+                xVelocity, 
+                yVelocity,
+                angularVelocity    
             );
         }
     }

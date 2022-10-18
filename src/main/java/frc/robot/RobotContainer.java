@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.commands.drivebase.CycleCenterOfRotation;
 import frc.robot.commands.drivebase.MeccanumDrive;
+import frc.robot.commands.drivebase.WestcoastDrive;
 import frc.robot.commands.drivebase.CycleCenterOfRotation.Direction;
 import frc.robot.subsystems.Drivebase;
 import frc.robot.subsystems.Drivebase.CenterOfRotation;
@@ -31,6 +32,7 @@ public class RobotContainer {
 
   // and the robot's commands are defined here!
   private final MeccanumDrive meccanumDrive = new MeccanumDrive(drivebase, driverController);
+  private final WestcoastDrive westcoastDrive = new WestcoastDrive(drivebase, driverController);
   private final CycleCenterOfRotation cycleUpCenterOfRotation = new CycleCenterOfRotation(drivebase, Direction.UP);
   private final CycleCenterOfRotation cycleDownCenterOfRotation = new CycleCenterOfRotation(drivebase, Direction.DOWN);
 
@@ -46,12 +48,18 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {
-    driverController.dPadUpButton().whenPressed(cycleUpCenterOfRotation);
-    driverController.dPadDownButton().whenPressed(cycleDownCenterOfRotation);
-    driverController.dPadRightButton().whenPressed(() -> drivebase.setCenterOfRotation(CenterOfRotation.CENTER));
+  private void configureButtonBindings() 
+  { 
     driverController.bButton().whenPressed(() -> drivebase.resetPosition(DrivebaseConstants.STARTING_POSE));
     driverController.aButton().whenPressed(() -> drivebase.resetPosition(DrivebaseConstants.WALL));
+    
+    if(drivebase.isMeccanum()) // Only make these keybindings if there is a meccanum
+    {
+      driverController.dPadUpButton().whenPressed(cycleUpCenterOfRotation);
+      driverController.dPadDownButton().whenPressed(cycleDownCenterOfRotation);
+      
+      driverController.dPadRightButton().whenPressed(() -> drivebase.setCenterOfRotation(CenterOfRotation.CENTER));
+    } 
   }
 
   /**
@@ -64,7 +72,14 @@ public class RobotContainer {
   }
 
   public void teleopCommandInit() {
-    meccanumDrive.initialize();
+    if(drivebase.isMeccanum())
+    {
+      meccanumDrive.initialize();
+    }
+    else
+    {
+      westcoastDrive.initialize();
+    }
   }
 
   public MeccanumDrive getMeccanumDrive() {

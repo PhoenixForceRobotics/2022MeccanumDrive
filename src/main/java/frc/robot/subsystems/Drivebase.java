@@ -25,6 +25,7 @@ public class Drivebase extends SubsystemBase {
         FR_WHEEL(DrivebaseConstants.WHEEL_FR_LOCATION), 
         BL_WHEEL(DrivebaseConstants.WHEEL_BL_LOCATION), 
         BR_WHEEL(DrivebaseConstants.WHEEL_BR_LOCATION), 
+        FRONT_CENTER(DrivebaseConstants.FRONT_CENTER_LOCATION),
         CENTER(new Translation2d());
 
         private Translation2d location;
@@ -116,8 +117,13 @@ public class Drivebase extends SubsystemBase {
         tab.add("Actual Y Velocity", decimalFormatter.format(actualChassisSpeeds.vyMetersPerSecond) + " m/s");
         tab.add("Actual Rotational Velocity", decimalFormatter.format((actualChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI)) + " deg/s");
 
-        Pose2d currentPose = odometry.update(gyro.getRotation2d(), actualWheelSpeeds); // Where we are on the field        
+        odometry.update(gyro.getRotation2d(), actualWheelSpeeds); // Where we are on the field        
     
+        if(!isMeccanum())
+        {
+            centerOfRotation = CenterOfRotation.CENTER;
+            desiredChassisSpeeds.vyMetersPerSecond = 0; // turns the meccanum into west-coast drive
+        }
         // Updates the velocity
         MecanumDriveWheelSpeeds desiredWheelSpeeds =kinematics.toWheelSpeeds(desiredChassisSpeeds, centerOfRotation.get());
 
@@ -177,5 +183,9 @@ public class Drivebase extends SubsystemBase {
 
     public double getHeading() {
         return gyro.getRotation2d().getDegrees();
+    }
+
+    public boolean isMeccanum() {
+        return drivebaseSwitch.get(); // switch must be active to be maccanum
     }
 }
