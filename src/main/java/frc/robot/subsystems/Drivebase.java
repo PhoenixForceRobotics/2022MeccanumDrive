@@ -9,11 +9,8 @@ import edu.wpi.first.math.kinematics.MecanumDriveKinematics;
 import edu.wpi.first.math.kinematics.MecanumDriveOdometry;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.networktables.EntryListenerFlags;
-import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -65,6 +62,9 @@ public class Drivebase extends SubsystemBase {
 
     private ShuffleboardTab drivebaseTab; // The shuffleboard tab we are getting data from and uploading data
 
+    private boolean isIndependentWheelControl = true; // Whether we are setting the entire drivebase, or each wheel individually
+
+    private double flSpeed, frSpeed, blSpeed, brSpeed = 0;
     // private NetworkTableEntry softwareDrivebaseSwitch;
 
     private DecimalFormat decimalFormatter;
@@ -161,12 +161,20 @@ public class Drivebase extends SubsystemBase {
 
         // Scales the values to prevent values from being too high
         desiredWheelSpeeds.desaturate(DrivebaseConstants.MAX_OBTAINABLE_WHEEL_VELOCITY);
-        
-        flWheel.setMetersPerSecond(desiredWheelSpeeds.frontLeftMetersPerSecond);
-        frWheel.setMetersPerSecond(desiredWheelSpeeds.frontRightMetersPerSecond);
-        blWheel.setMetersPerSecond(desiredWheelSpeeds.rearLeftMetersPerSecond);
-        brWheel.setMetersPerSecond(desiredWheelSpeeds.rearRightMetersPerSecond);
-
+        if(isIndependentWheelControl)
+        {
+            flWheel.set(flSpeed);
+            frWheel.set(frSpeed);
+            blWheel.set(blSpeed);
+            brWheel.set(brSpeed);
+        }
+        else
+        {
+            flWheel.setMetersPerSecond(desiredWheelSpeeds.frontLeftMetersPerSecond);
+            frWheel.setMetersPerSecond(desiredWheelSpeeds.frontRightMetersPerSecond);
+            blWheel.setMetersPerSecond(desiredWheelSpeeds.rearLeftMetersPerSecond);
+            brWheel.setMetersPerSecond(desiredWheelSpeeds.rearRightMetersPerSecond);
+        }
         // Publishes the data to the Shuffleboard Tab
         drivebaseTab.add("Actual FL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontLeftMetersPerSecond) + " m/s");
         drivebaseTab.add("Actual FR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontRightMetersPerSecond) + " m/s");
@@ -181,8 +189,6 @@ public class Drivebase extends SubsystemBase {
         drivebaseTab.add("Desired FR Wheel Velocity", desiredWheelSpeeds.frontRightMetersPerSecond);
         drivebaseTab.add("Desired BL Wheel Velocity", desiredWheelSpeeds.rearLeftMetersPerSecond);
         drivebaseTab.add("Desired BR Wheel Velocity", desiredWheelSpeeds.rearRightMetersPerSecond);
-
-        // 
     }
     
     public void setChassisSpeeds(ChassisSpeeds desiredChassisSpeeds) {
@@ -206,6 +212,20 @@ public class Drivebase extends SubsystemBase {
         this.centerOfRotation = centerOfRotation;
     }
 
+    public void setIndependentWheelPercentages(double[] independentWheelPercentages) {
+        flSpeed = independentWheelPercentages[0];
+        frSpeed = independentWheelPercentages[1];
+        blSpeed = independentWheelPercentages[2];
+        brSpeed = independentWheelPercentages[3];
+    }
+
+    public void setIndependentWheelPercentages(double flSpeed, double frSpeed, double blSpeed, double brSpeed)
+    {
+        this.flSpeed = flSpeed;
+        this.frSpeed = frSpeed;
+        this.blSpeed = blSpeed;
+        this.brSpeed = brSpeed;
+    }
     /**
      * Sets the "proportational" variable for the PID in each motor
      * 
@@ -280,5 +300,9 @@ public class Drivebase extends SubsystemBase {
     public boolean isMeccanum() {
         // return drivebaseSwitch.get(); // switch must be active to be maccanum
         return true;
+    }
+
+    public boolean isIndependentWheelControl() {
+        return isIndependentWheelControl;
     }
 }

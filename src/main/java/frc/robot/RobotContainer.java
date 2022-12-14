@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.commands.drivebase.CycleCenterOfRotation;
+import frc.robot.commands.drivebase.IndividualWheelControl;
 import frc.robot.commands.drivebase.MeccanumDrive;
 import frc.robot.commands.drivebase.WestcoastDrive;
 import frc.robot.commands.drivebase.CycleCenterOfRotation.Direction;
@@ -27,14 +28,16 @@ public class RobotContainer {
   private final Drivebase drivebase = new Drivebase();
 
   // The robot's controllers are defined here...
-  private final PFRController operatorController = new PFRController(1);
-  private final PFRController driverController = new PFRController(0);
-
+  private final PFRController operatorController = new PFRController(0);
+  private final PFRController driverController = new PFRController(1);
+  private final PFRController driverController2 = new PFRController(2);
+  
   // and the robot's commands are defined here!
   private final MeccanumDrive meccanumDrive = new MeccanumDrive(drivebase, driverController);
   private final WestcoastDrive westcoastDrive = new WestcoastDrive(drivebase, driverController);
   private final CycleCenterOfRotation cycleUpCenterOfRotation = new CycleCenterOfRotation(drivebase, Direction.UP);
   private final CycleCenterOfRotation cycleDownCenterOfRotation = new CycleCenterOfRotation(drivebase, Direction.DOWN);
+  private final IndividualWheelControl individualWheelControl = new IndividualWheelControl(drivebase, driverController, driverController2);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -74,7 +77,14 @@ public class RobotContainer {
   public void teleopCommandInit() {
     if(drivebase.isMeccanum())
     {
-      meccanumDrive.initialize();
+      if(drivebase.isIndependentWheelControl())
+      {
+        individualWheelControl.initialize();
+      }
+      else
+      {
+        meccanumDrive.initialize();
+      }
     }
     else
     {
