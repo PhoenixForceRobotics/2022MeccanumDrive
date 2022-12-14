@@ -56,14 +56,14 @@ public class Drivebase extends SubsystemBase {
     private Gyro gyro;
     // private DigitalInput drivebaseSwitch; // The physical switch to toggle between 'Meccanum' and 'West-Coast'
 
-    private MecanumDriveKinematics kinematics;
+    private MecanumDriveKinematics kinematics; // Everything we use to track the robot's location and behavior
     private MecanumDriveOdometry odometry;
     private ChassisSpeeds actualChassisSpeeds;
     private ChassisSpeeds desiredChassisSpeeds; // The Speeds we want to the set the robot to
 
-    private CenterOfRotation centerOfRotation;
+    private CenterOfRotation centerOfRotation; // Where the mecanum drive will rotate around
 
-    private ShuffleboardTab tab;
+    private ShuffleboardTab drivebaseTab; // The shuffleboard tab we are getting data from and uploading data
 
     // private NetworkTableEntry softwareDrivebaseSwitch;
 
@@ -81,6 +81,7 @@ public class Drivebase extends SubsystemBase {
 
         // drivebaseSwitch = new DigitalInput(0);
         
+        // Creates the kinematics 
         kinematics = new MecanumDriveKinematics(
             DrivebaseConstants.WHEEL_FL_LOCATION, 
             DrivebaseConstants.WHEEL_FR_LOCATION, 
@@ -88,32 +89,35 @@ public class Drivebase extends SubsystemBase {
             DrivebaseConstants.WHEEL_BR_LOCATION
         );
 
+        // Creates the odometry
         odometry = new MecanumDriveOdometry(
             kinematics, 
             gyro.getRotation2d(), 
             DrivebaseConstants.STARTING_POSE
         );
 
-        desiredChassisSpeeds = new ChassisSpeeds();
+        desiredChassisSpeeds = new ChassisSpeeds(); // completely empty chassis speeds (all 0's)
 
         centerOfRotation = CenterOfRotation.CENTER;
 
-        tab = Shuffleboard.getTab("Drivebase Subsystem");
+        drivebaseTab = Shuffleboard.getTab("Drivebase Subsystem");
 
-        decimalFormatter = new DecimalFormat("##.##");
+        decimalFormatter = new DecimalFormat("##.##"); // ALlows us to format data later on
 
         // softwareDrivebaseSwitch = tab.add("Drivebase Switch", false).getEntry();
 
-        NetworkTableEntry kpEntry = tab.add("Drivebase Switch", 0.01).getEntry();
-        NetworkTableEntry kdEntry = tab.add("Drivebase Switch", 0).getEntry();
+        NetworkTableEntry kpEntry = drivebaseTab.add("Drivebase Switch", 0.01).getEntry();
+        NetworkTableEntry kdEntry = drivebaseTab.add("Drivebase Switch", 0).getEntry();
 
+        // Tells the computer to update the PID constants everytime we change it in Shuffleboard 
         kpEntry.addListener(
             event -> {
                 double kp = event.getEntry().getDouble(0.01);
                 System.out.println("Velocity 'P' has changed: " + kp);
                 setD(kp);
             }, 
-            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate
+        );
 
          kdEntry.addListener(
             event -> {
@@ -121,7 +125,8 @@ public class Drivebase extends SubsystemBase {
                 System.out.println("Velocity 'P' has changed: " + kd);
                 setD(kd);
             }, 
-            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate
+        );
     }
 
     @Override
@@ -134,18 +139,11 @@ public class Drivebase extends SubsystemBase {
             frWheel.getMetersPerSecond()
         );
 
-        tab.add("Actual FL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontLeftMetersPerSecond) + " m/s");
-        tab.add("Actual FR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontRightMetersPerSecond) + " m/s");
-        tab.add("Actual BL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.rearLeftMetersPerSecond) + " m/s");
-        tab.add("Actual BR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.rearRightMetersPerSecond) + " m/s");
-
+        // Gives us the values that the chassis is moving at (velocities, directions)
         actualChassisSpeeds = kinematics.toChassisSpeeds(actualWheelSpeeds);
 
-        tab.add("Actual X Velocity", decimalFormatter.format(actualChassisSpeeds.vxMetersPerSecond) + " m/s");
-        tab.add("Actual Y Velocity", decimalFormatter.format(actualChassisSpeeds.vyMetersPerSecond) + " m/s");
-        tab.add("Actual Rotational Velocity", decimalFormatter.format((actualChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI)) + " deg/s");
-
-        odometry.update(gyro.getRotation2d(), actualWheelSpeeds); // Where we are on the field        
+        // Updates where we are on the field        
+        odometry.update(gyro.getRotation2d(), actualWheelSpeeds); 
     
         if(!isMeccanum())
         {
@@ -158,9 +156,10 @@ public class Drivebase extends SubsystemBase {
         //     desiredChassisSpeeds = new ChassisSpeeds(); // lock up the wheels if acknowledgement is not noticed
         // }
 
-        // Updates the velocity
+        // Updates the velocities sent to each wheel's PID
         MecanumDriveWheelSpeeds desiredWheelSpeeds = kinematics.toWheelSpeeds(desiredChassisSpeeds, centerOfRotation.get());
 
+        // Scales the values to prevent values from being too high
         desiredWheelSpeeds.desaturate(DrivebaseConstants.MAX_OBTAINABLE_WHEEL_VELOCITY);
         
         flWheel.setMetersPerSecond(desiredWheelSpeeds.frontLeftMetersPerSecond);
@@ -168,10 +167,20 @@ public class Drivebase extends SubsystemBase {
         blWheel.setMetersPerSecond(desiredWheelSpeeds.rearLeftMetersPerSecond);
         brWheel.setMetersPerSecond(desiredWheelSpeeds.rearRightMetersPerSecond);
 
-        tab.add("Desired FL Wheel Velocity", desiredWheelSpeeds.frontLeftMetersPerSecond);
-        tab.add("Desired FR Wheel Velocity", desiredWheelSpeeds.frontRightMetersPerSecond);
-        tab.add("Desired BL Wheel Velocity", desiredWheelSpeeds.rearLeftMetersPerSecond);
-        tab.add("Desired BR Wheel Velocity", desiredWheelSpeeds.rearRightMetersPerSecond);
+        // Publishes the data to the Shuffleboard Tab
+        drivebaseTab.add("Actual FL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontLeftMetersPerSecond) + " m/s");
+        drivebaseTab.add("Actual FR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontRightMetersPerSecond) + " m/s");
+        drivebaseTab.add("Actual BL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.rearLeftMetersPerSecond) + " m/s");
+        drivebaseTab.add("Actual BR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.rearRightMetersPerSecond) + " m/s");
+        
+        drivebaseTab.add("Actual X Velocity", decimalFormatter.format(actualChassisSpeeds.vxMetersPerSecond) + " m/s");
+        drivebaseTab.add("Actual Y Velocity", decimalFormatter.format(actualChassisSpeeds.vyMetersPerSecond) + " m/s");
+        drivebaseTab.add("Actual Rotational Velocity", decimalFormatter.format((actualChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI)) + " deg/s");
+
+        drivebaseTab.add("Desired FL Wheel Velocity", desiredWheelSpeeds.frontLeftMetersPerSecond);
+        drivebaseTab.add("Desired FR Wheel Velocity", desiredWheelSpeeds.frontRightMetersPerSecond);
+        drivebaseTab.add("Desired BL Wheel Velocity", desiredWheelSpeeds.rearLeftMetersPerSecond);
+        drivebaseTab.add("Desired BR Wheel Velocity", desiredWheelSpeeds.rearRightMetersPerSecond);
 
         // 
     }
@@ -197,14 +206,24 @@ public class Drivebase extends SubsystemBase {
         this.centerOfRotation = centerOfRotation;
     }
 
+    /**
+     * Sets the "proportational" variable for the PID in each motor
+     * 
+     * @param kp what to set each motor's "proportional" parameter to
+     */
     public void setP(double kp)
     {
         flWheel.setVelocityP(kp);
         frWheel.setVelocityP(kp);
         blWheel.setVelocityP(kp);
-        brWheel.setVelocityP(kp);
+        brWheel.setVelocityP(kp); 
     }
 
+    /**
+     * Sets the "derivative" variable (slope at one point) for the PID in each motor
+     * 
+     * @param kd what to set each motor's "proportional" parameter to
+     */
     public void setD(double kd)
     {
         flWheel.setVelocityD(kd);
@@ -214,7 +233,7 @@ public class Drivebase extends SubsystemBase {
     }
 
     /**
-     * 
+     * Sets the position of the robot to a particular position and rotation relative to the field
      * @param poseMeters The position on the field that your robot is at.
      */
     public void resetPosition(Pose2d poseMeters) {
