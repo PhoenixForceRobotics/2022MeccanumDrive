@@ -28,8 +28,7 @@ public class Motor extends CANSparkMax {
   public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter, PIDController positionPID, PIDController velocityPID)
   {
     this(port, reversed, gearRatio, wheelDiameter, positionPID, velocityPID, new SimpleMotorFeedforward(0, 0));
-  }
-  
+  } 
   public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter)
   {
     this(port, reversed, gearRatio, wheelDiameter, new PIDController(0, 0, 0), new PIDController(0, 0, 0));
@@ -49,6 +48,20 @@ public class Motor extends CANSparkMax {
     setVoltage(output);
   }
 
+  public void setVelocityP(double kp)
+  {
+    velocityPID.setP(kp);
+  }
+
+  public void setVelocityI(double ki)
+  {
+    velocityPID.setP(ki);
+  }
+
+  public void setVelocityD(double kd)
+  {
+    velocityPID.setD(kd);
+  }
   public double getRotations() {
     return getEncoder().getPosition() * gearRatio;
   }

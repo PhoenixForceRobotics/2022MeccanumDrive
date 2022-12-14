@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -23,15 +24,16 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 public final class Constants {
     
     public static final class DrivebaseConstants {
-        public static final double GEAR_RATIO = 0.5; // output / input
-        public static final double WHEEL_DIAMETER = 1; // In meters
-        public static final PIDController VELOCITY_PID = new PIDController(1, 0, 0); // Controls feedback for maintaining velocity
-        public static final PIDController POSITION_PID = new PIDController(1, 0, 0); // Controls feedback for maintaing position
+        public static final double GEAR_RATIO = 72 / 12; // output / input
+        public static final double WHEEL_DIAMETER = 0.1524; // In meters (6 in wheels)
+        public static final PIDController VELOCITY_PID = new PIDController(1, 0, 0); // Controls feedback loop for maintaining velocity
+        public static final PIDController POSITION_PID = new PIDController(1, 0, 0); // Controls feedback loop for maintaing position
+        public static final SimpleMotorFeedforward FEEDFORWARD = new SimpleMotorFeedforward(12, 1); //TODO: actually characterize drivebase
 
         public static final int WHEEL_FL_PORT = 1;
         public static final int WHEEL_FR_PORT = 2;
-        public static final int WHEEL_BL_PORT = 2;
-        public static final int WHEEL_BR_PORT = 2;
+        public static final int WHEEL_BL_PORT = 3;
+        public static final int WHEEL_BR_PORT = 4;
 
         public static final boolean WHEEL_FL_REVERSED = false;
         public static final boolean WHEEL_FR_REVERSED = false;
@@ -45,8 +47,8 @@ public final class Constants {
         public static final Translation2d FRONT_CENTER_LOCATION = new Translation2d(0, 0.381); // Helpful for evassive manuvers
 
         public static final HolonomicDriveController HOLONOMIC_DRIVE_CONTROLLER = new HolonomicDriveController(
-            new PIDController(1, 0, 0), // PID to control error in the x direction
-            new PIDController(1, 0, 0), // PID to control error in the y direction
+            VELOCITY_PID, // PID to control error in the x direction
+            POSITION_PID, // PID to control error in the y direction
             new ProfiledPIDController(1, 0, 0, // PID to controller error in angle
                 new TrapezoidProfile.Constraints(6.28, 3.14))
         );

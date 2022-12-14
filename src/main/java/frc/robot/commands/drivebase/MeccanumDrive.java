@@ -31,13 +31,12 @@ public class MeccanumDrive extends CommandBase {
         
         if(driverController.getAButtonPressed()) 
         {
-            switch (frameOfReference) {
-                case ROBOT:
-                    frameOfReference = FrameOfReference.FIELD;
-                    break;
-                default:
-                    frameOfReference = FrameOfReference.ROBOT;
-                    break;
+            // allows us to toggle frame of reference when button pressed
+            if(frameOfReference == FrameOfReference.ROBOT) 
+            {
+                frameOfReference = FrameOfReference.FIELD;
+            } else {
+                frameOfReference = FrameOfReference.ROBOT;
             }
         }
         
@@ -63,7 +62,7 @@ public class MeccanumDrive extends CommandBase {
                 angularVelocity
             );
         }
-        else
+        else // frame of reference must be field-relative
         {
             drivebase.setFieldRelativeChassisSpeeds(
                 xVelocity, 
