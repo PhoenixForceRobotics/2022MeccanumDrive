@@ -23,7 +23,7 @@ public class CycleCenterOfRotation extends InstantCommand {
         CenterOfRotation currentCenterOfRotation = drivebase.getCenterOfRotation();
         int lengthOfEnum = CenterOfRotation.values().length;
         int index;
-        if(!drivebase.isMeccanum()) //immediate cancel if this is not a meccanum
+        if(!drivebase.isMecanum()) //immediate cancel if this is not a meccanum
         {
             drivebase.setCenterOfRotation(CenterOfRotation.CENTER);
             return;

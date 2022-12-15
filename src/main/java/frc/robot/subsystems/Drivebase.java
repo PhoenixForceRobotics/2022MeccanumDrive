@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.MecanumDriveOdometry;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -51,7 +52,7 @@ public class Drivebase extends SubsystemBase {
     private Motor blWheel;
     private Motor brWheel;
     private Gyro gyro;
-    // private DigitalInput drivebaseSwitch; // The physical switch to toggle between 'Meccanum' and 'West-Coast'
+    // private DigitalInput drivebaseSwitch; // The physical switch to toggle between 'Mecanum' and 'West-Coast'
 
     private MecanumDriveKinematics kinematics; // Everything we use to track the robot's location and behavior
     private MecanumDriveOdometry odometry;
@@ -60,7 +61,7 @@ public class Drivebase extends SubsystemBase {
 
     private CenterOfRotation centerOfRotation; // Where the mecanum drive will rotate around
 
-    private ShuffleboardTab drivebaseTab; // The shuffleboard tab we are getting data from and uploading data
+    private ShuffleboardTab drivebaseTab; // The shuffleboard tab we are using for TELEMETRY
 
     private boolean isIndependentWheelControl = true; // Whether we are setting the entire drivebase, or each wheel individually
 
@@ -100,33 +101,11 @@ public class Drivebase extends SubsystemBase {
 
         centerOfRotation = CenterOfRotation.CENTER;
 
-        drivebaseTab = Shuffleboard.getTab("Drivebase Subsystem");
+        
 
         decimalFormatter = new DecimalFormat("##.##"); // ALlows us to format data later on
 
         // softwareDrivebaseSwitch = tab.add("Drivebase Switch", false).getEntry();
-
-        NetworkTableEntry kpEntry = drivebaseTab.add("Drivebase Switch", 0.01).getEntry();
-        NetworkTableEntry kdEntry = drivebaseTab.add("Drivebase Switch", 0).getEntry();
-
-        // Tells the computer to update the PID constants everytime we change it in Shuffleboard 
-        kpEntry.addListener(
-            event -> {
-                double kp = event.getEntry().getDouble(0.01);
-                System.out.println("Velocity 'P' has changed: " + kp);
-                setD(kp);
-            }, 
-            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate
-        );
-
-         kdEntry.addListener(
-            event -> {
-                double kd = event.getEntry().getDouble(0);
-                System.out.println("Velocity 'P' has changed: " + kd);
-                setD(kd);
-            }, 
-            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate
-        );
     }
 
     @Override
@@ -145,13 +124,13 @@ public class Drivebase extends SubsystemBase {
         // Updates where we are on the field        
         odometry.update(gyro.getRotation2d(), actualWheelSpeeds); 
     
-        if(!isMeccanum())
+        if(!isMecanum())
         {
             centerOfRotation = CenterOfRotation.CENTER;
             desiredChassisSpeeds.vyMetersPerSecond = 0; // turns the meccanum into west-coast drive
         }
 
-        // if(isMeccanum() && softwareDrivebaseSwitch.getBoolean(false))
+        // if(isMecanum() && softwareDrivebaseSwitch.getBoolean(false))
         // {
         //     desiredChassisSpeeds = new ChassisSpeeds(); // lock up the wheels if acknowledgement is not noticed
         // }
@@ -297,12 +276,26 @@ public class Drivebase extends SubsystemBase {
         return gyro.getRotation2d().getDegrees();
     }
 
-    public boolean isMeccanum() {
+    public boolean isMecanum() {
         // return drivebaseSwitch.get(); // switch must be active to be maccanum
         return true;
     }
 
+    public void setIndependentWheelControl(boolean isIndependentWheelControl) {
+        this.isIndependentWheelControl = isIndependentWheelControl;
+    }
     public boolean isIndependentWheelControl() {
         return isIndependentWheelControl;
+    }
+
+    public ShuffleboardTab getDrivebaseTab() {
+        return drivebaseTab;
+    }
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        super.initSendable(builder);
+        builder.addDoubleProperty("Velocity kP", flWheel.getPIDController()::getP, this::setP);
+        builder.addDoubleProperty("Velocity kD", flWheel.getPIDController()::getD, this::setD);
     }
 }

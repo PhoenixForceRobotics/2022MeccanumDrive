@@ -62,6 +62,19 @@ public class Motor extends CANSparkMax {
   {
     velocityPID.setD(kd);
   }
+
+  public double getVelocityP() {
+      return velocityPID.getP();
+  }
+  
+  public double getVelocityI() {
+    return velocityPID.getI();
+  }
+  
+  public double getVelocityD() {
+    return velocityPID.getD();
+  }
+
   public double getRotations() {
     return getEncoder().getPosition() * gearRatio;
   }

@@ -5,16 +5,17 @@ import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.Drivebase;
 import frc.robot.utils.PFRController;
 
-public class IndividualWheelControl extends CommandBase{
+public class IndividualWheelDrive extends CommandBase{
     private final Drivebase drivebase;
     private final PFRController frontDriverController;
     private final PFRController backDriverController; // Need 4 y-axis to control each wheel individually
 
-    public IndividualWheelControl(Drivebase drivebase, PFRController frontDriverController, PFRController backDriverController)
+    public IndividualWheelDrive(Drivebase drivebase, PFRController frontDriverController, PFRController backDriverController)
     {
         this.drivebase = drivebase;
         this.frontDriverController = frontDriverController;
         this.backDriverController = backDriverController;
+        addRequirements(drivebase);
     }
 
     @Override

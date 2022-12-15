@@ -7,7 +7,7 @@ import frc.robot.subsystems.Drivebase;
 import frc.robot.subsystems.Drivebase.CenterOfRotation;
 import frc.robot.utils.PFRController;
 
-public class MeccanumDrive extends CommandBase {
+public class MecanumDrive extends CommandBase {
     
     public enum FrameOfReference { ROBOT, FIELD; }
 
@@ -15,11 +15,12 @@ public class MeccanumDrive extends CommandBase {
     private final PFRController driverController;
     private FrameOfReference frameOfReference;
 
-    public MeccanumDrive(Drivebase drivebase, PFRController driverController)
+    public MecanumDrive(Drivebase drivebase, PFRController driverController)
     {
         this.drivebase = drivebase;
         this.driverController = driverController;
         frameOfReference = FrameOfReference.ROBOT;
+        addRequirements(drivebase);
     }
 
     @Override
@@ -47,7 +48,7 @@ public class MeccanumDrive extends CommandBase {
         double angularVelocity = Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_ANGULAR_VELOCITY;
 
         // More redundancies to prevent damage
-        if(!drivebase.isMeccanum())
+        if(!drivebase.isMecanum())
         {
             frameOfReference = FrameOfReference.ROBOT;
             yVelocity = 0;
