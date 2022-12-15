@@ -4,13 +4,18 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivebaseConstants;
+import frc.robot.Constants.ShuffleboardConstants;
 import frc.robot.commands.drivebase.CycleCenterOfRotation;
 import frc.robot.commands.drivebase.CycleCenterOfRotation.Direction;
 import frc.robot.commands.drivebase.IndividualWheelDrive;
@@ -76,6 +81,8 @@ public class RobotContainer {
 
   public void initializeListenersAndSendables()
   {
+    NetworkTableInstance networkTableInstance = NetworkTableInstance.getDefault(); 
+    
     // Main Tab
     mainTab.add("Drivebase Subsystem", drivebase); 
 
@@ -85,8 +92,16 @@ public class RobotContainer {
     drivebaseCommandChooser.addOption("Independent Wheel Control*", individualWheelDrive);
 
     // Places chooser on mainTab (where all configs are)
-    mainTab.add("Drivebase Choice", drivebaseCommandChooser); 
-    
+    mainTab.add(ShuffleboardConstants.DRIVEBASE_CHOOSER, drivebaseCommandChooser); 
+
+    // Create listener for changes in command
+    NetworkTableEntry commandChooserEntry = networkTableInstance.getEntry("/SmartDashboard/" + ShuffleboardConstants.DRIVEBASE_CHOOSER + "/selected"); // TODO: check if this is the right namespace
+    commandChooserEntry.addListener(
+      entry -> {
+        drivebaseCommandChooser.getSelected().schedule();
+      },
+      EntryListenerFlags.kUpdate | EntryListenerFlags.kNew
+    );
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
@@ -98,12 +113,13 @@ public class RobotContainer {
   }
 
   public void InitializeTeleopCommands() {
+    CommandScheduler.getInstance().cancelAll();
     
+    drivebaseCommandChooser.getSelected().schedule();
   }
 
   public void teleopPeriodic() {
-    drivebaseCommandChooser.getSelected().schedule(); // TODO: figure out how to listen for changes in this value, for efficiency sake
-                                                      // The way it is current set up makes this run 20 TIMES PER SECOND
+  
   }
 
   public MecanumDrive getMecanumDrive() {

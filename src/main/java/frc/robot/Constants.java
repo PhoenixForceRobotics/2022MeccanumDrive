@@ -87,4 +87,8 @@ public final class Constants {
         public static final double FALCON_ENCODER_RESOLUTION = 2048;
         public static final int CLOSED_LOOP_SPEED_MS = 1; // in milliseconds
       }
+
+    public static final class ShuffleboardConstants {
+        public static final String DRIVEBASE_CHOOSER = "Drivebase Chooser"; // Constant to prevent *namespace mismatches* 
+    }
 }
