@@ -3,7 +3,6 @@ package frc.robot.commands.drivebase;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.Drivebase;
 import frc.robot.utils.PFRController;
 
@@ -28,8 +27,8 @@ public class WestcoastDrive extends CommandBase {
         //     0, // No horizontal velocity possible
         //     rotationalVelocity
         // );
-        double xSpeed = Math.pow(driverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE);
-        double rotationSpeed = Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE);
+        double xSpeed = -driverController.getLeftYSquared();
+        double rotationSpeed = driverController.getRightXSquared();
         WheelSpeeds wheelSpeeds = DifferentialDrive.arcadeDriveIK(xSpeed, rotationSpeed, false);
 
         drivebase.setIndependentWheelPercentages(

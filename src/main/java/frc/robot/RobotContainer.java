@@ -70,13 +70,10 @@ public class RobotContainer {
     driverController.bButton().whenPressed(() -> drivebase.resetPosition(DrivebaseConstants.STARTING_POSE));
     driverController.aButton().whenPressed(() -> drivebase.resetPosition(DrivebaseConstants.WALL));
     
-    if(drivebase.isMecanum()) // Only make these keybindings if there is a mecanum
-    {
-      driverController.dPadUpButton().whenPressed(cycleUpCenterOfRotation);
-      driverController.dPadDownButton().whenPressed(cycleDownCenterOfRotation);
+    driverController.dPadUpButton().whenPressed(cycleUpCenterOfRotation);
+    driverController.dPadDownButton().whenPressed(cycleDownCenterOfRotation);
       
-      driverController.dPadRightButton().whenPressed(() -> drivebase.setCenterOfRotation(CenterOfRotation.CENTER));
-    } 
+    driverController.dPadRightButton().whenPressed(() -> drivebase.setCenterOfRotation(CenterOfRotation.CENTER)); 
   }
 
   public void initializeListenersAndSendables()
@@ -124,6 +121,14 @@ public class RobotContainer {
 
   public MecanumDrive getMecanumDrive() {
       return mecanumDrive;
+  }
+
+  public WestcoastDrive getWestcoastDrive() {
+      return westcoastDrive;
+  }
+
+  public IndividualWheelDrive getIndividualWheelDrive() {
+      return individualWheelDrive;
   }
 
   public PFRController getDriverController() {

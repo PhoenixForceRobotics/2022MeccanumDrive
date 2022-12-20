@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.subsystems.Drivebase;
-import frc.robot.subsystems.Drivebase.CenterOfRotation;
 import frc.robot.utils.PFRController;
 
 public class MecanumDrive extends CommandBase {
@@ -46,14 +45,6 @@ public class MecanumDrive extends CommandBase {
         double xVelocity = Math.pow(driverController.getLeftX(), ControllerConstants.STICK_EXPONENTIAL_CURVE)  * DrivebaseConstants.MAX_LINEAR_VELOCITY;
         double yVelocity = Math.pow(driverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_LINEAR_VELOCITY; 
         double angularVelocity = Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_ANGULAR_VELOCITY;
-
-        // More redundancies to prevent damage
-        if(!drivebase.isMecanum())
-        {
-            frameOfReference = FrameOfReference.ROBOT;
-            yVelocity = 0;
-            drivebase.setCenterOfRotation(CenterOfRotation.CENTER);
-        }
 
         if(frameOfReference == FrameOfReference.ROBOT)
         {    

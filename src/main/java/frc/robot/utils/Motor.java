@@ -1,6 +1,7 @@
 package frc.robot.utils;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -19,7 +20,7 @@ public class Motor extends CANSparkMax {
     this.gearRatio = gearRatio;
     this.wheelDiameter = wheelDiameter;
     this.positionPID = positionPID;
-    this.velocityPID = velocityPID;
+    this.velocityPID = velocityPID; // TODO: Decide whether I want to use this PID or the integrated PID
     this.feedforward = feedforward;
 
     setInverted(reversed);
@@ -47,6 +48,14 @@ public class Motor extends CANSparkMax {
     double output = positionPID.calculate(getMeters(), meters) + feedforward.ks;
     setVoltage(output);
   }
+
+  @Override
+  public SparkMaxPIDController getPIDController() {
+    // TODO Auto-generated method stub
+    return super.getPIDController();
+  }
+
+  
 
   public void setVelocityP(double kp)
   {

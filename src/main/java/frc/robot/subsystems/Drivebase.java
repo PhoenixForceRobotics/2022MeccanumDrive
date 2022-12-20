@@ -8,9 +8,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.MecanumDriveKinematics;
 import edu.wpi.first.math.kinematics.MecanumDriveOdometry;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DrivebaseConstants;
@@ -58,15 +60,14 @@ public class Drivebase extends SubsystemBase {
 
     private CenterOfRotation centerOfRotation; // Where the mecanum drive will rotate around
 
-    private ShuffleboardTab drivebaseTab; // The shuffleboard tab we are using for TELEMETRY
+    private final ShuffleboardTab drivebaseTab; // The shuffleboard tab we are using for TELEMETRY
 
-    private boolean isIndependentWheelControl = true; // Whether we are setting the entire drivebase, or each wheel individually
+    private boolean isIndependentWheelControl = false; // Whether we are setting the entire drivebase, or each wheel individually
 
     private double flSpeed, frSpeed, blSpeed, brSpeed = 0;
-    // private NetworkTableEntry softwareDrivebaseSwitch;
 
-    private DecimalFormat decimalFormatter;
-
+    private NetworkTableEntry actualFLVelocityEntry, actualFRVelocityEntry, actualBLVelocityEntry, actualBRVelocityEntry, actualXVelocityEntry, actualYVelocityEntry, actualRotationalVelocityEntry;
+    private NetworkTableEntry desiredFLVelocityEntry, desiredFRVelocityEntry, desiredBLVelocityEntry, desiredBRVelocityEntry, desiredXVelocityEntry, desiredYVelocityEntry, desiredRotationalVelocityEntry;
 
     public Drivebase()
     {
@@ -98,11 +99,29 @@ public class Drivebase extends SubsystemBase {
 
         centerOfRotation = CenterOfRotation.CENTER;
 
-        
+        drivebaseTab = Shuffleboard.getTab("Drivebase");
 
-        decimalFormatter = new DecimalFormat("##.##"); // ALlows us to format data later on
 
         // softwareDrivebaseSwitch = tab.add("Drivebase Switch", false).getEntry();
+
+        actualFLVelocityEntry = drivebaseTab.add("Actual FL Wheel Velocity", 0).getEntry();
+        actualFRVelocityEntry = drivebaseTab.add("Actual FR Wheel Velocity", 0).getEntry();
+        actualBLVelocityEntry = drivebaseTab.add("Actual BL Wheel Velocity", 0).getEntry();
+        actualBRVelocityEntry = drivebaseTab.add("Actual BR Wheel Velocity", 0).getEntry();
+        
+        actualXVelocityEntry = drivebaseTab.add("Actual X Velocity", 0).getEntry();
+        actualYVelocityEntry = drivebaseTab.add("Actual Y Velocity", 0).getEntry();
+        actualRotationalVelocityEntry = drivebaseTab.add("Actual Rotational Velocity", 0).getEntry();
+
+        desiredFLVelocityEntry = drivebaseTab.add("Desired FL Wheel Velocity", 0).getEntry();
+        desiredFRVelocityEntry = drivebaseTab.add("Desired FR Wheel Velocity", 0).getEntry();
+        desiredBLVelocityEntry = drivebaseTab.add("Desired BL Wheel Velocity", 0).getEntry();
+        desiredBRVelocityEntry = drivebaseTab.add("Desired BR Wheel Velocity", 0).getEntry();
+
+        desiredXVelocityEntry = drivebaseTab.add("Desired X Velocity", 0).getEntry();
+        desiredYVelocityEntry = drivebaseTab.add("Desired Y Velocity", 0).getEntry();
+        desiredRotationalVelocityEntry = drivebaseTab.add("Desired Rotational Velocity", 0).getEntry();
+
     }
 
     @Override
@@ -121,17 +140,6 @@ public class Drivebase extends SubsystemBase {
         // Updates where we are on the field        
         odometry.update(gyro.getRotation2d(), actualWheelSpeeds); 
     
-        if(!isMecanum())
-        {
-            centerOfRotation = CenterOfRotation.CENTER;
-            desiredChassisSpeeds.vyMetersPerSecond = 0; // turns the meccanum into west-coast drive
-        }
-
-        // if(isMecanum() && softwareDrivebaseSwitch.getBoolean(false))
-        // {
-        //     desiredChassisSpeeds = new ChassisSpeeds(); // lock up the wheels if acknowledgement is not noticed
-        // }
-
         // Updates the velocities sent to each wheel's PID
         MecanumDriveWheelSpeeds desiredWheelSpeeds = kinematics.toWheelSpeeds(desiredChassisSpeeds, centerOfRotation.get());
 
@@ -152,19 +160,25 @@ public class Drivebase extends SubsystemBase {
             brWheel.setMetersPerSecond(desiredWheelSpeeds.rearRightMetersPerSecond);
         }
         // Publishes the data to the Shuffleboard Tab
-        drivebaseTab.add("Actual FL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontLeftMetersPerSecond) + " m/s");
-        drivebaseTab.add("Actual FR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.frontRightMetersPerSecond) + " m/s");
-        drivebaseTab.add("Actual BL Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.rearLeftMetersPerSecond) + " m/s");
-        drivebaseTab.add("Actual BR Wheel Velocity", decimalFormatter.format(actualWheelSpeeds.rearRightMetersPerSecond) + " m/s");
+        actualFLVelocityEntry.setDouble(actualWheelSpeeds.frontLeftMetersPerSecond);
+        actualFRVelocityEntry.setDouble(actualWheelSpeeds.frontRightMetersPerSecond);
+        actualBLVelocityEntry.setDouble(actualWheelSpeeds.rearLeftMetersPerSecond);
+        actualBRVelocityEntry.setDouble(actualWheelSpeeds.rearRightMetersPerSecond);
         
-        drivebaseTab.add("Actual X Velocity", decimalFormatter.format(actualChassisSpeeds.vxMetersPerSecond) + " m/s");
-        drivebaseTab.add("Actual Y Velocity", decimalFormatter.format(actualChassisSpeeds.vyMetersPerSecond) + " m/s");
-        drivebaseTab.add("Actual Rotational Velocity", decimalFormatter.format((actualChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI)) + " deg/s");
+        actualXVelocityEntry.setDouble(actualChassisSpeeds.vxMetersPerSecond);
+        actualYVelocityEntry.setDouble(actualChassisSpeeds.vyMetersPerSecond);
+        actualRotationalVelocityEntry.setDouble(actualChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI);
 
-        drivebaseTab.add("Desired FL Wheel Velocity", desiredWheelSpeeds.frontLeftMetersPerSecond);
-        drivebaseTab.add("Desired FR Wheel Velocity", desiredWheelSpeeds.frontRightMetersPerSecond);
-        drivebaseTab.add("Desired BL Wheel Velocity", desiredWheelSpeeds.rearLeftMetersPerSecond);
-        drivebaseTab.add("Desired BR Wheel Velocity", desiredWheelSpeeds.rearRightMetersPerSecond);
+        desiredFLVelocityEntry.setDouble(desiredWheelSpeeds.frontLeftMetersPerSecond);
+        desiredFRVelocityEntry.setDouble(desiredWheelSpeeds.frontRightMetersPerSecond);
+        desiredBLVelocityEntry.setDouble(desiredWheelSpeeds.rearLeftMetersPerSecond);
+        desiredBRVelocityEntry.setDouble(desiredWheelSpeeds.rearRightMetersPerSecond);
+
+        desiredXVelocityEntry.getDouble(desiredChassisSpeeds.vxMetersPerSecond);
+        desiredFLVelocityEntry.getDouble(desiredChassisSpeeds.vyMetersPerSecond);
+        desiredRotationalVelocityEntry.getDouble(desiredChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI);
+        
+
     }
     
     public void setChassisSpeeds(ChassisSpeeds desiredChassisSpeeds) {
@@ -271,11 +285,6 @@ public class Drivebase extends SubsystemBase {
      */
     public double getHeading() {
         return gyro.getRotation2d().getDegrees();
-    }
-
-    public boolean isMecanum() {
-        // return drivebaseSwitch.get(); // switch must be active to be maccanum
-        return true;
     }
 
     public void setIndependentWheelControl(boolean isIndependentWheelControl) {

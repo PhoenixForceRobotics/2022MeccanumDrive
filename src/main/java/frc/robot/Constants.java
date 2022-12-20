@@ -35,9 +35,9 @@ public final class Constants {
         public static final int WHEEL_BL_PORT = 3;
         public static final int WHEEL_BR_PORT = 4;
 
-        public static final boolean WHEEL_FL_REVERSED = false;
+        public static final boolean WHEEL_FL_REVERSED = true;
         public static final boolean WHEEL_FR_REVERSED = false;
-        public static final boolean WHEEL_BL_REVERSED = false;
+        public static final boolean WHEEL_BL_REVERSED = true;
         public static final boolean WHEEL_BR_REVERSED = false;
 
         public static final Translation2d WHEEL_FL_LOCATION = new Translation2d(0.381, 0.381);
@@ -86,6 +86,13 @@ public final class Constants {
     public static final class UtilConstants {
         public static final double FALCON_ENCODER_RESOLUTION = 2048;
         public static final int CLOSED_LOOP_SPEED_MS = 1; // in milliseconds
+
+        public static final int POSITION_PID_SLOT = 0;
+        public static final int VELOCITY_PID_SLOT = 1;
+        public static final int VOLTAGE_PID_SLOT = 2;
+        public static final int BLAN_PID_SLOT = 3;
+        
+        
       }
 
     public static final class ShuffleboardConstants {

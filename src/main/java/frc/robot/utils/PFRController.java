@@ -11,6 +11,27 @@ public class PFRController extends XboxController {
     super(port);
   }
 
+  public double getLeftXSquared() {
+    return getValueSquaredAndSign(getLeftX());
+  }
+
+  public double getLeftYSquared() {
+    
+    return getValueSquaredAndSign(getLeftY());
+  }
+
+  public double getRightXSquared() {
+    
+    return getValueSquaredAndSign(getRightX());
+  }
+
+  public double getRightYSquared() {
+    return getValueSquaredAndSign(getRightY());
+  }
+
+  public static double getValueSquaredAndSign(double value) {
+    return Math.pow(value, ControllerConstants.STICK_EXPONENTIAL_CURVE) * Math.signum(value);
+  }
   public JoystickButton aButton() {
     return new JoystickButton(this, Button.kA.value);
   }
