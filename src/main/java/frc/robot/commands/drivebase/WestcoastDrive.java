@@ -18,6 +18,11 @@ public class WestcoastDrive extends CommandBase {
     }
 
     @Override
+    public void initialize() {
+        drivebase.setIndependentWheelControl(true);
+    }
+    
+    @Override
     public void execute() {
         // double linearVelocity = Math.pow(driverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_LINEAR_VELOCITY;
         // double rotationalVelocity = Math.pow(driverController.getRightX(), ControllerConstants.STICK_EXPONENTIAL_CURVE) * DrivebaseConstants.MAX_ANGULAR_VELOCITY;

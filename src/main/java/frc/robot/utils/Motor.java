@@ -1,7 +1,6 @@
 package frc.robot.utils;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -13,26 +12,26 @@ public class Motor extends CANSparkMax {
   private PIDController velocityPID;
   private SimpleMotorFeedforward feedforward;
 
-  public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter, PIDController positionPID, PIDController velocityPID, SimpleMotorFeedforward feedforward) 
+  public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter, PIDValues positionPID, PIDValues velocityPID, SimpleMotorFeedforward feedforward) 
   {
     super(port, MotorType.kBrushless);
     
     this.gearRatio = gearRatio;
     this.wheelDiameter = wheelDiameter;
-    this.positionPID = positionPID;
-    this.velocityPID = velocityPID; // TODO: Decide whether I want to use this PID or the integrated PID
+    this.positionPID = new PIDController(positionPID.getP(), positionPID.getI(), positionPID.getD());
+    this.velocityPID = new PIDController(velocityPID.getP(), velocityPID.getI(), velocityPID.getD());
     this.feedforward = feedforward;
 
     setInverted(reversed);
   }
 
-  public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter, PIDController positionPID, PIDController velocityPID)
+  public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter, PIDValues positionPID, PIDValues velocityPID)
   {
     this(port, reversed, gearRatio, wheelDiameter, positionPID, velocityPID, new SimpleMotorFeedforward(0, 0));
   } 
   public Motor(int port, boolean reversed, double gearRatio, double wheelDiameter)
   {
-    this(port, reversed, gearRatio, wheelDiameter, new PIDController(0, 0, 0), new PIDController(0, 0, 0));
+    this(port, reversed, gearRatio, wheelDiameter, new PIDValues(0, 0, 0), new PIDValues(0, 0, 0));
   }
   public Motor(int port, boolean reversed)
   {
@@ -48,14 +47,6 @@ public class Motor extends CANSparkMax {
     double output = positionPID.calculate(getMeters(), meters) + feedforward.ks;
     setVoltage(output);
   }
-
-  @Override
-  public SparkMaxPIDController getPIDController() {
-    // TODO Auto-generated method stub
-    return super.getPIDController();
-  }
-
-  
 
   public void setVelocityP(double kp)
   {
@@ -73,7 +64,7 @@ public class Motor extends CANSparkMax {
   }
 
   public double getVelocityP() {
-      return velocityPID.getP();
+    return velocityPID.getP();
   }
   
   public double getVelocityI() {
@@ -82,6 +73,14 @@ public class Motor extends CANSparkMax {
   
   public double getVelocityD() {
     return velocityPID.getD();
+  }
+
+  public PIDController getVelocityPID() {
+    return velocityPID; 
+  }
+
+  public PIDController getPositionPID() {
+      return positionPID;
   }
 
   public double getRotations() {
@@ -106,6 +105,10 @@ public class Motor extends CANSparkMax {
 
   public double getwheelDiameter() {
     return wheelDiameter;
+  }
+
+  public double getVelocityError() {
+    return velocityPID.getVelocityError();
   }
 
   public boolean isReversed()

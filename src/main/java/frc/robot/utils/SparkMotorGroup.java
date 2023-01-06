@@ -4,7 +4,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.SparkMaxRelativeEncoder.Type;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 
 public class SparkMotorGroup extends MotorControllerGroup {
@@ -24,7 +23,7 @@ public class SparkMotorGroup extends MotorControllerGroup {
     }
 
     this.leader.setInverted(isInverted);
-    encoder = this.leader.getEncoder(Type.kHallSensor, 42);
+    encoder = this.leader.getEncoder();
   }
 
   @Override
@@ -46,7 +45,6 @@ public class SparkMotorGroup extends MotorControllerGroup {
     pidController.setP(pidValues.getP());
     pidController.setI(pidValues.getI());
     pidController.setD(pidValues.getD());
-    pidController.setFF(pidValues.getFF());
     pidController.setOutputRange(minOutput, maxOutput);
   }
 

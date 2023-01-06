@@ -32,9 +32,7 @@ public class Falcon extends WPI_TalonFX {
       config_kP(index, falconPID.getD());
       config_kI(index, falconPID.getI());
       config_kD(index, falconPID.getD());
-      config_kF(index, falconPID.getFF());
-      configClosedLoopPeakOutput(index, falconPID.getPeakOutput());
-
+      
       // sets the speed of each loop. can be slowed if sensor updates are too fast
       // or  derivative is changing too slowly
       configClosedLoopPeriod(index, UtilConstants.CLOSED_LOOP_SPEED_MS);

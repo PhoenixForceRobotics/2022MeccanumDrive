@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
-import java.text.DecimalFormat;
-
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -64,10 +63,11 @@ public class Drivebase extends SubsystemBase {
 
     private boolean isIndependentWheelControl = false; // Whether we are setting the entire drivebase, or each wheel individually
 
-    private double flSpeed, frSpeed, blSpeed, brSpeed = 0;
+    private double flSpeed, frSpeed, blSpeed, brSpeed = 0; // Speeds for independent wheel control
 
-    private NetworkTableEntry actualFLVelocityEntry, actualFRVelocityEntry, actualBLVelocityEntry, actualBRVelocityEntry, actualXVelocityEntry, actualYVelocityEntry, actualRotationalVelocityEntry;
-    private NetworkTableEntry desiredFLVelocityEntry, desiredFRVelocityEntry, desiredBLVelocityEntry, desiredBRVelocityEntry, desiredXVelocityEntry, desiredYVelocityEntry, desiredRotationalVelocityEntry;
+    private final NetworkTableEntry actualFLVelocityEntry, actualFRVelocityEntry, actualBLVelocityEntry, actualBRVelocityEntry, actualXVelocityEntry, actualYVelocityEntry, actualRotationalVelocityEntry;
+    private final NetworkTableEntry desiredFLVelocityEntry, desiredFRVelocityEntry, desiredBLVelocityEntry, desiredBRVelocityEntry, desiredXVelocityEntry, desiredYVelocityEntry, desiredRotationalVelocityEntry;
+    private final NetworkTableEntry velocityErrorEntry;
 
     public Drivebase()
     {
@@ -101,9 +101,6 @@ public class Drivebase extends SubsystemBase {
 
         drivebaseTab = Shuffleboard.getTab("Drivebase");
 
-
-        // softwareDrivebaseSwitch = tab.add("Drivebase Switch", false).getEntry();
-
         actualFLVelocityEntry = drivebaseTab.add("Actual FL Wheel Velocity", 0).getEntry();
         actualFRVelocityEntry = drivebaseTab.add("Actual FR Wheel Velocity", 0).getEntry();
         actualBLVelocityEntry = drivebaseTab.add("Actual BL Wheel Velocity", 0).getEntry();
@@ -122,6 +119,7 @@ public class Drivebase extends SubsystemBase {
         desiredYVelocityEntry = drivebaseTab.add("Desired Y Velocity", 0).getEntry();
         desiredRotationalVelocityEntry = drivebaseTab.add("Desired Rotational Velocity", 0).getEntry();
 
+        velocityErrorEntry = drivebaseTab.add("Velocity Error", 0).getEntry();
     }
 
     @Override
@@ -131,7 +129,7 @@ public class Drivebase extends SubsystemBase {
             flWheel.getMetersPerSecond(),
             frWheel.getMetersPerSecond(),
             blWheel.getMetersPerSecond(),
-            frWheel.getMetersPerSecond()
+            brWheel.getMetersPerSecond()
         );
 
         // Gives us the values that the chassis is moving at (velocities, directions)
@@ -144,7 +142,8 @@ public class Drivebase extends SubsystemBase {
         MecanumDriveWheelSpeeds desiredWheelSpeeds = kinematics.toWheelSpeeds(desiredChassisSpeeds, centerOfRotation.get());
 
         // Scales the values to prevent values from being too high
-        desiredWheelSpeeds.desaturate(DrivebaseConstants.MAX_OBTAINABLE_WHEEL_VELOCITY);
+        desiredWheelSpeeds.desaturate(1);
+
         if(isIndependentWheelControl)
         {
             flWheel.set(flSpeed);
@@ -159,6 +158,7 @@ public class Drivebase extends SubsystemBase {
             blWheel.setMetersPerSecond(desiredWheelSpeeds.rearLeftMetersPerSecond);
             brWheel.setMetersPerSecond(desiredWheelSpeeds.rearRightMetersPerSecond);
         }
+        
         // Publishes the data to the Shuffleboard Tab
         actualFLVelocityEntry.setDouble(actualWheelSpeeds.frontLeftMetersPerSecond);
         actualFRVelocityEntry.setDouble(actualWheelSpeeds.frontRightMetersPerSecond);
@@ -174,11 +174,13 @@ public class Drivebase extends SubsystemBase {
         desiredBLVelocityEntry.setDouble(desiredWheelSpeeds.rearLeftMetersPerSecond);
         desiredBRVelocityEntry.setDouble(desiredWheelSpeeds.rearRightMetersPerSecond);
 
-        desiredXVelocityEntry.getDouble(desiredChassisSpeeds.vxMetersPerSecond);
-        desiredFLVelocityEntry.getDouble(desiredChassisSpeeds.vyMetersPerSecond);
-        desiredRotationalVelocityEntry.getDouble(desiredChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI);
+        desiredXVelocityEntry.setDouble(desiredChassisSpeeds.vxMetersPerSecond);
+        desiredYVelocityEntry.setDouble(desiredChassisSpeeds.vyMetersPerSecond);
+        desiredRotationalVelocityEntry.setDouble(desiredChassisSpeeds.omegaRadiansPerSecond * 180 / Math.PI);
         
-
+        // Calculate average velocity error in all motors
+        double averageError = (flWheel.getVelocityPID().getPositionError() + frWheel.getVelocityPID().getPositionError() + blWheel.getVelocityPID().getPositionError() + brWheel.getVelocityPID().getPositionError()) / 4;
+        velocityErrorEntry.setDouble(averageError);
     }
     
     public void setChassisSpeeds(ChassisSpeeds desiredChassisSpeeds) {
@@ -242,6 +244,7 @@ public class Drivebase extends SubsystemBase {
         brWheel.setVelocityD(kd);
     }
 
+
     /**
      * Sets the position of the robot to a particular position and rotation relative to the field
      * @param poseMeters The position on the field that your robot is at.
@@ -298,10 +301,24 @@ public class Drivebase extends SubsystemBase {
         return drivebaseTab;
     }
 
+    public Motor getFlWheel() {
+        return flWheel;
+    }
+
+    public Motor getFrWheel() {
+        return frWheel;
+    }
+
+    public Motor getBlWheel() {
+        return blWheel;
+    }
+
+    public Motor getBrWheel() {
+        return brWheel;
+    }
+    
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
-        builder.addDoubleProperty("Velocity kP", flWheel.getPIDController()::getP, this::setP);
-        builder.addDoubleProperty("Velocity kD", flWheel.getPIDController()::getD, this::setD);
     }
 }

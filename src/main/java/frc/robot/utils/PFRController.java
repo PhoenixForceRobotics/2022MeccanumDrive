@@ -30,7 +30,7 @@ public class PFRController extends XboxController {
   }
 
   public static double getValueSquaredAndSign(double value) {
-    return Math.pow(value, ControllerConstants.STICK_EXPONENTIAL_CURVE) * Math.signum(value);
+    return Math.pow(value, 2) * Math.signum(value);
   }
   public JoystickButton aButton() {
     return new JoystickButton(this, Button.kA.value);

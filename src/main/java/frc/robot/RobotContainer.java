@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.DrivebaseConstants;
 import frc.robot.Constants.ShuffleboardConstants;
 import frc.robot.commands.drivebase.CycleCenterOfRotation;
+import frc.robot.commands.drivebase.ForwardDrive;
 import frc.robot.commands.drivebase.CycleCenterOfRotation.Direction;
 import frc.robot.commands.drivebase.IndividualWheelDrive;
 import frc.robot.commands.drivebase.MecanumDrive;
@@ -43,6 +44,8 @@ public class RobotContainer {
   // The robot's commands are defined here...
   private final MecanumDrive mecanumDrive = new MecanumDrive(drivebase, driverController);
   private final WestcoastDrive westcoastDrive = new WestcoastDrive(drivebase, driverController);
+  private final ForwardDrive forwardDrive = new ForwardDrive(drivebase, driverController);
+
   private final IndividualWheelDrive individualWheelDrive = new IndividualWheelDrive(drivebase, driverController, driverController2);
   private final CycleCenterOfRotation cycleUpCenterOfRotation = new CycleCenterOfRotation(drivebase, Direction.UP);
   private final CycleCenterOfRotation cycleDownCenterOfRotation = new CycleCenterOfRotation(drivebase, Direction.DOWN);
@@ -82,17 +85,22 @@ public class RobotContainer {
     
     // Main Tab
     mainTab.add("Drivebase Subsystem", drivebase); 
+    mainTab.add("FL PID", drivebase.getFlWheel().getPIDController());
+    mainTab.add("FR PID", drivebase.getFrWheel().getPIDController());
+    mainTab.add("BL PID", drivebase.getBlWheel().getPIDController());
+    mainTab.add("BR PID", drivebase.getBrWheel().getPIDController());
 
     // Add options for chooser
-    drivebaseCommandChooser.setDefaultOption("Westcoast Drive", westcoastDrive);
+    drivebaseCommandChooser.addOption("Westcoast Drive", westcoastDrive);
     drivebaseCommandChooser.addOption("Mecanum Drive", mecanumDrive);
+    drivebaseCommandChooser.setDefaultOption("Forward Drive", forwardDrive);
     drivebaseCommandChooser.addOption("Independent Wheel Control*", individualWheelDrive);
 
     // Places chooser on mainTab (where all configs are)
     mainTab.add(ShuffleboardConstants.DRIVEBASE_CHOOSER, drivebaseCommandChooser); 
 
     // Create listener for changes in command
-    NetworkTableEntry commandChooserEntry = networkTableInstance.getEntry("/SmartDashboard/" + ShuffleboardConstants.DRIVEBASE_CHOOSER + "/selected"); // TODO: check if this is the right namespace
+    NetworkTableEntry commandChooserEntry = networkTableInstance.getEntry("/Shuffleboard/" + ShuffleboardConstants.DRIVEBASE_CHOOSER + "/selected"); // TODO: check if this is the right namespace
     commandChooserEntry.addListener(
       entry -> {
         drivebaseCommandChooser.getSelected().schedule();
@@ -109,9 +117,8 @@ public class RobotContainer {
     return null;  
   }
 
-  public void InitializeTeleopCommands() {
+  public void initializeTeleopCommands() {
     CommandScheduler.getInstance().cancelAll();
-    
     drivebaseCommandChooser.getSelected().schedule();
   }
 

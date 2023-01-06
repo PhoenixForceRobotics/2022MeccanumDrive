@@ -1,7 +1,6 @@
 package frc.robot.commands.drivebase;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.Drivebase;
 import frc.robot.utils.PFRController;
 
@@ -19,12 +18,17 @@ public class IndividualWheelDrive extends CommandBase{
     }
 
     @Override
+    public void initialize() {
+        drivebase.setIndependentWheelControl(true);
+    }
+    
+    @Override
     public void execute() {
         // Find values for each wheel and apply them
-        double flSpeed = Math.pow(frontDriverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE);
-        double frSpeed = Math.pow(frontDriverController.getRightY(), ControllerConstants.STICK_EXPONENTIAL_CURVE);
-        double blSpeed = Math.pow(backDriverController.getLeftY(), ControllerConstants.STICK_EXPONENTIAL_CURVE);
-        double brSpeed = Math.pow(backDriverController.getRightY(), ControllerConstants.STICK_EXPONENTIAL_CURVE);
+        double flSpeed = frontDriverController.getLeftYSquared();
+        double frSpeed = frontDriverController.getRightYSquared();
+        double blSpeed = backDriverController.getLeftYSquared();
+        double brSpeed = backDriverController.getRightYSquared();
         drivebase.setIndependentWheelPercentages(
             flSpeed, 
             frSpeed,

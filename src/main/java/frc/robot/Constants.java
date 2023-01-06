@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.robot.utils.PIDValues;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -24,11 +25,11 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 public final class Constants {
     
     public static final class DrivebaseConstants {
-        public static final double GEAR_RATIO = 72 / 12; // output / input
+        public static final double GEAR_RATIO = (double) 12 / (double) 72; // output / input
         public static final double WHEEL_DIAMETER = 0.1524; // In meters (6 in wheels)
-        public static final PIDController VELOCITY_PID = new PIDController(1, 0, 0); // Controls feedback loop for maintaining velocity
-        public static final PIDController POSITION_PID = new PIDController(1, 0, 0); // Controls feedback loop for maintaing position
-        public static final SimpleMotorFeedforward FEEDFORWARD = new SimpleMotorFeedforward(12, 1); //TODO: actually characterize drivebase
+        public static final PIDValues VELOCITY_PID = new PIDValues(0.3, 0, 0.001); // Controls feedback loop for maintaining velocity
+        public static final PIDValues POSITION_PID = new PIDValues(0.01, 0, 0); // Controls feedback loop for maintaing position
+        public static final SimpleMotorFeedforward FEEDFORWARD = new SimpleMotorFeedforward(0.142227, 1.5567, 0.055421); //TODO: actually characterize drivebase
 
         public static final int WHEEL_FL_PORT = 1;
         public static final int WHEEL_FR_PORT = 2;
@@ -46,12 +47,12 @@ public final class Constants {
         public static final Translation2d WHEEL_BR_LOCATION = new Translation2d(-0.381, -0.381);
         public static final Translation2d FRONT_CENTER_LOCATION = new Translation2d(0, 0.381); // Helpful for evassive manuvers
 
-        public static final HolonomicDriveController HOLONOMIC_DRIVE_CONTROLLER = new HolonomicDriveController(
-            VELOCITY_PID, // PID to control error in the x direction
-            POSITION_PID, // PID to control error in the y direction
-            new ProfiledPIDController(1, 0, 0, // PID to controller error in angle
-                new TrapezoidProfile.Constraints(6.28, 3.14))
-        );
+        // public static final HolonomicDriveController HOLONOMIC_DRIVE_CONTROLLER = new HolonomicDriveController(
+        //     VELOCITY_PID, // PID to control error in the x direction
+        //     POSITION_PID, // PID to control error in the y direction
+        //     new ProfiledPIDController(1, 0, 0, // PID to controller error in angle
+        //         new TrapezoidProfile.Constraints(6.28, 3.14))
+        // );
         // Here, our rotation profile constraints were a max velocity
         // of 1 rotation per second and a max acceleration of 180 degrees
         // per second squared.
@@ -68,9 +69,9 @@ public final class Constants {
             new Rotation2d()
         );
 
-        public static final double MAX_OBTAINABLE_WHEEL_VELOCITY = 1; // Absolute max speed of a single wheel (meters per second) *Used for desaturation*
-        public static final double MAX_LINEAR_VELOCITY = 1; // Desired max speed of the chassis (meters per second)
-        public static final double MAX_ANGULAR_VELOCITY = 1; // radians per second
+        public static final double MAX_OBTAINABLE_WHEEL_VELOCITY = 6.1; // Absolute max speed of a single wheel (meters per second) *Used for desaturation*
+        public static final double MAX_LINEAR_VELOCITY = 6; // Desired max speed of the chassis (meters per second)
+        public static final double MAX_ANGULAR_VELOCITY = 0.5 * Math.PI; // radians per second
     }
 
     public static final class ControllerConstants {
